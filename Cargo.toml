@@ -1,0 +1,6 @@
+[package]
+name = "orderbook-rs"
+version = "0.1.0"
+authors = ["unknown <inv2004@gmail.com>"]
+
+[dependencies]
