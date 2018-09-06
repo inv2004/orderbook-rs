@@ -30,7 +30,6 @@ fn convert_record(rec: &BookRecordL3) -> BookRecord {
 }
 
 fn get_seq(full: &Full) -> &usize {
-    println!("{:?}", full);
     match full {
         Full::Open(Open{sequence, ..}) => sequence,
         Full::Done(Done::Limit{sequence, ..}) => sequence,
@@ -50,16 +49,22 @@ fn reload(client: &Public<ASync>) -> impl Future<Item=Book<BookRecordL3>, Error=
 }
 
 fn process_full(ob: &mut OrderBook, full: Full) {
+//    println!("{:?}", full);
     match full {
+        Full::Received(..)
+            => (),
         Full::Open(Open{price, remaining_size: size, order_id: id, side, ..})
-        => ob.open(convert_side(side), BookRecord { price, size, id }).unwrap_or(()),
+            => ob.open(convert_side(side), BookRecord { price, size, id }).unwrap_or(()),
         Full::Done(Done::Limit {price, order_id: id, ..})
-        => ob.done(price, id).unwrap_or(()),
+            => ob.done(price, id).unwrap_or(()),
+        Full::Done(Done::Market {..})
+            => (),
         Full::Match(Match{size, price, maker_order_id: id, ..})
-        => ob._match(price, size, id).unwrap_or(()),
+            => ob._match(price, size, id).unwrap_or(()),
         Full::Change(Change{new_size: size, price, order_id: id, ..})
-        => ob.change(price, size, id).unwrap_or(()),
-        _ => println!("other")
+            => ob.change(price, size, id).unwrap_or(()),
+        _
+            =>println!("other: {:?}", full)
     }
 }
 
@@ -77,24 +82,21 @@ fn main() {
                Message::Full(full) => {
                    let new_sequence = get_seq(&full).to_owned();
                    let old_sequence = sequence.load(Ordering::SeqCst);
-                   println!("msg: seq: {}    old: {}", new_sequence, old_sequence);
                    if new_sequence > 1 + old_sequence {
                        let ob2 = ob.clone();
                        let sequence2 = sequence.clone();
                        return Either::A(reload(&client)
                            .and_then(move |book| {
-                               println!("reload: done: seq: {}", book.sequence);
                                let bids = book.bids.iter()
                                    .map(convert_record)
                                    .collect::<Vec<_>>();
-                               let asks = book.bids.iter()
+                               let asks = book.asks.iter()
                                    .map(convert_record)
                                    .collect::<Vec<_>>();
                                let mut ob = ob2.lock().unwrap();
-                               ob.init(bids, asks);
-                               {
-                                   sequence2.store(book.sequence, Ordering::SeqCst);
-                               }
+                               ob.reload(bids, asks);
+                               sequence2.store(book.sequence, Ordering::SeqCst);
+                               println!("{}", ob);
                                Ok(())
                            }))
                    } else if new_sequence <= old_sequence {

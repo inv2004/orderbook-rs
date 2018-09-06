@@ -5,10 +5,12 @@ use std::fmt;
 use std::collections::VecDeque;
 pub use uuid::Uuid;
 
+#[derive(Debug)]
 pub enum Side {
     Buy, Sell
 }
 
+#[derive(Debug)]
 pub struct BookRecord {
     pub price: f64,
     pub size: f64,
@@ -31,7 +33,7 @@ impl OrderBook {
         }
     }
 
-    pub fn init(&mut self, bids: Vec<BookRecord>, asks: Vec<BookRecord>) -> Option<()> {
+    pub fn reload(&mut self, bids: Vec<BookRecord>, asks: Vec<BookRecord>) -> Option<()> {
         bids.into_iter().try_for_each(|rec| self.open(Side::Buy, rec))?;
         asks.into_iter().try_for_each(|rec| self.open(Side::Sell, rec))?;
         Some(())
@@ -48,6 +50,7 @@ impl OrderBook {
 
     pub fn open(&mut self, side: Side, rec: BookRecord) -> Option<()> {
         let p_idx = self.get_idx(rec.price)?;
+//        println!("{} {:?} {:?}", p_idx, side, rec);
         match side {
             Side::Buy if p_idx > self.bid => self.bid = p_idx,
             Side::Sell if p_idx < self.ask => self.ask = p_idx,
@@ -142,9 +145,9 @@ mod tests {
     #[test]
     fn test_display() {
         let mut ob = OrderBook::new();
-        ob.init(vec![BookRecord{price:3994.96, size:0.3, id:Uuid::new_v4()}
-                     , BookRecord{price:3995.0, size:0.5, id:Uuid::new_v4()}],
-                vec![BookRecord{price:4005.0, size:0.4, id:Uuid::new_v4()}
+        ob.reload(vec![BookRecord{price:3994.96, size:0.3, id:Uuid::new_v4()}
+                       , BookRecord{price:3995.0, size:0.5, id:Uuid::new_v4()}],
+                  vec![BookRecord{price:4005.0, size:0.4, id:Uuid::new_v4()}
                      , BookRecord{price: 4005.02, size: 0.2, id: Uuid::new_v4()}]);
 
         ob.open(Side::Buy, BookRecord{price:3994.96, size:0.2, id: Uuid::new_v4()});
@@ -158,9 +161,9 @@ mod tests {
         let mut ob = OrderBook::new();
         let id1 = Uuid::new_v4();
         let id2 = Uuid::new_v4();
-        ob.init(vec![BookRecord{price:3994.96, size:0.3, id:id1}
-                     , BookRecord{price:3995.0, size:0.5, id:id2}],
-                vec![BookRecord{price:4005.0, size:0.4, id:Uuid::new_v4()}
+        ob.reload(vec![BookRecord{price:3994.96, size:0.3, id:id1}
+                       , BookRecord{price:3995.0, size:0.5, id:id2}],
+                  vec![BookRecord{price:4005.0, size:0.4, id:Uuid::new_v4()}
                      , BookRecord{price: 4005.02, size: 0.2, id: Uuid::new_v4()}]);
 
         ob.open(Side::Buy, BookRecord{price:3994.96, size:0.2, id:Uuid::new_v4()});
@@ -175,9 +178,9 @@ mod tests {
         let mut ob = OrderBook::new();
         let id1 = Uuid::new_v4();
         let id2 = Uuid::new_v4();
-        ob.init(vec![BookRecord{price:3994.96, size:0.3, id:id1}
-                     , BookRecord{price:3995.0, size:0.5, id:id2}],
-                vec![BookRecord{price:4005.0, size:0.4, id:Uuid::new_v4()}
+        ob.reload(vec![BookRecord{price:3994.96, size:0.3, id:id1}
+                       , BookRecord{price:3995.0, size:0.5, id:id2}],
+                  vec![BookRecord{price:4005.0, size:0.4, id:Uuid::new_v4()}
                      , BookRecord{price: 4005.02, size: 0.2, id: Uuid::new_v4()}]);
 
         ob.done(3994.96, id1);
