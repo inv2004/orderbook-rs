@@ -1,4 +1,5 @@
 extern crate uuid;
+#[macro_use] extern crate approx;
 
 use std::collections::VecDeque;
 use std::fmt;
@@ -67,7 +68,7 @@ impl OrderBook {
         assert_eq!(id, self.book[p_idx][0].1);
         let mut sz = self.book[p_idx][0].0;
         sz -= size;
-        if sz == 0.0 {
+        if relative_eq!(sz, 0.0) {
             self.book[p_idx].pop_front();
             self.check_ask_bid(p_idx);
         }
