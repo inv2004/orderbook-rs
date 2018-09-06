@@ -21,9 +21,6 @@ pub struct OrderBook {
     ask: usize
 }
 
-fn get_idx(price: f64) -> usize {
-    (price * 100.0) as usize
-}
 
 impl OrderBook {
     pub fn new() -> Self {
@@ -34,23 +31,34 @@ impl OrderBook {
         }
     }
 
-    pub fn init(&mut self, bids: Vec<BookRecord>, asks: Vec<BookRecord>) {
-        bids.into_iter().for_each(|rec| self.add(Side::Buy, rec));
-        asks.into_iter().for_each(|rec| self.add(Side::Sell, rec));
+    pub fn init(&mut self, bids: Vec<BookRecord>, asks: Vec<BookRecord>) -> Option<()> {
+        bids.into_iter().try_for_each(|rec| self.open(Side::Buy, rec))?;
+        asks.into_iter().try_for_each(|rec| self.open(Side::Sell, rec))?;
+        Some(())
     }
 
-    pub fn add(&mut self, side: Side, rec: BookRecord) {
-        let p_idx = get_idx(rec.price);
+    fn get_idx(&self, price: f64) -> Option<usize> {
+        let p_idx = (price * 100.0) as usize;
+        if p_idx >= self.book.len() {
+            None
+        } else {
+            Some(p_idx)
+        }
+    }
+
+    pub fn open(&mut self, side: Side, rec: BookRecord) -> Option<()> {
+        let p_idx = self.get_idx(rec.price)?;
         match side {
             Side::Buy if p_idx > self.bid => self.bid = p_idx,
             Side::Sell if p_idx < self.ask => self.ask = p_idx,
             _ => ()
         }
         self.book[p_idx].push_back((rec.size, rec.id));
+        Some(())
     }
 
-    pub fn _match(&mut self, price: f64, size: f64, id: Uuid) {
-        let p_idx = get_idx(price);
+    pub fn _match(&mut self, price: f64, size: f64, id: Uuid) -> Option<()> {
+        let p_idx = self.get_idx(price)?;
         assert_eq!(id, self.book[p_idx][0].1);
         let mut sz = self.book[p_idx][0].0;
         sz -= size;
@@ -58,16 +66,18 @@ impl OrderBook {
             self.book[p_idx].pop_front();
             self.check_ask_bid(p_idx);
         }
+        Some(())
     }
 
-    pub fn done(&mut self, price: f64, id: Uuid) {
-        let p_idx = get_idx(price);
+    pub fn done(&mut self, price: f64, id: Uuid) -> Option<()> {
+        let p_idx = self.get_idx(price)?;
         self.book[p_idx].retain(|&(_, it_id)| it_id != id);
         self.check_ask_bid(p_idx);
+        Some(())
     }
 
-    pub fn change(&mut self, price: f64, new_size: f64, id: Uuid) {
-        let p_idx = get_idx(price);
+    pub fn change(&mut self, price: f64, new_size: f64, id: Uuid) -> Option<()> {
+        let p_idx = self.get_idx(price)?;
         if new_size == 0.0 {
             self.done(price, id);
         } else {
@@ -79,6 +89,7 @@ impl OrderBook {
                     }
                 })
         }
+        Some(())
     }
 
     fn check_ask_bid(&mut self, p_idx: usize) {
@@ -112,6 +123,9 @@ impl OrderBook {
 
 impl fmt::Display for OrderBook {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        if self.bid == std::usize::MIN || self.ask == std::usize::MAX {
+            return write!(f, "OB: empty")
+        }
         let size = 20;
         let bids = self.fmt_side((self.bid-size)..=self.bid);
         let asks = self.fmt_side(self.ask..=self.ask+size);
@@ -133,7 +147,7 @@ mod tests {
                 vec![BookRecord{price:4005.0, size:0.4, id:Uuid::new_v4()}
                      , BookRecord{price: 4005.02, size: 0.2, id: Uuid::new_v4()}]);
 
-        ob.add(Side::Buy, BookRecord{price:3994.96, size:0.2, id: Uuid::new_v4()});
+        ob.open(Side::Buy, BookRecord{price:3994.96, size:0.2, id: Uuid::new_v4()});
 
         let str = format!("{}", ob);
         assert_eq!(str, "OB: 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.5,0,0,0,0.5 | 3995.00   4005.00 | 0.4,0,0.2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
@@ -149,7 +163,7 @@ mod tests {
                 vec![BookRecord{price:4005.0, size:0.4, id:Uuid::new_v4()}
                      , BookRecord{price: 4005.02, size: 0.2, id: Uuid::new_v4()}]);
 
-        ob.add(Side::Buy, BookRecord{price:3994.96, size:0.2, id:Uuid::new_v4()});
+        ob.open(Side::Buy, BookRecord{price:3994.96, size:0.2, id:Uuid::new_v4()});
         ob._match(3995.0, 0.5, id2);
 
         let str = format!("{}", ob);
