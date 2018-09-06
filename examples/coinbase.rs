@@ -3,20 +3,27 @@ extern crate orderbook_rs;
 extern crate futures;
 extern crate tokio;
 extern crate tokio_tungstenite;
+#[macro_use] extern crate failure;
 
 use futures::{Future, Stream};
 use futures::future::Either;
 use coinbase_pro_rs::{WSFeed, WS_URL};
 use coinbase_pro_rs::structs::wsfeed::*;
-use coinbase_pro_rs::{Public, ASync, MAIN_URL, WSError};
+use coinbase_pro_rs::{Public, ASync, MAIN_URL};
 use coinbase_pro_rs::structs::public::*;
 use orderbook_rs::{OrderBook, BookRecord};
-use std::sync::Mutex;
-use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex, atomic::{AtomicUsize, Ordering}};
 
 use coinbase_pro_rs::structs::reqs::OrderSide;
 use orderbook_rs::Side;
+
+#[derive(Debug, Fail)]
+enum Error {
+    #[fail(display = "coinbase")]
+    Coinbase(#[cause] coinbase_pro_rs::CBError),
+    #[fail(display = "websocket")]
+    Websocket(#[cause] coinbase_pro_rs::WSError)
+}
 
 fn convert_side(side: OrderSide) -> Side {
     match side {
@@ -42,10 +49,10 @@ fn get_seq(full: &Full) -> &usize {
     }
 }
 
-fn reload(client: &Public<ASync>) -> impl Future<Item=Book<BookRecordL3>, Error=WSError>{
+fn reload(client: &Public<ASync>) -> impl Future<Item=Book<BookRecordL3>, Error=Error>{
     println!("reload");
     client.get_book("BTC-USD")
-        .map_err(|_| WSError::Read(tokio_tungstenite::tungstenite::Error::Http(10)))
+        .map_err(Error::Coinbase)
 }
 
 fn process_full(ob: &mut OrderBook, full: Full) {
@@ -64,7 +71,7 @@ fn process_full(ob: &mut OrderBook, full: Full) {
         Full::Change(Change{new_size: size, price, order_id: id, ..})
             => ob.change(price, size, id).unwrap_or(()),
         _
-            =>println!("other: {:?}", full)
+            => println!("other: {:?}", full)
     }
 }
 
@@ -77,6 +84,7 @@ fn main() {
     let stream = WSFeed::new(WS_URL, &["BTC-USD"], &[ChannelType::Full]);
 
     let f = stream
+        .map_err(Error::Websocket)
         .for_each(move |msg| {
             match msg {
                Message::Full(full) => {
@@ -107,7 +115,7 @@ fn main() {
                        process_full(&mut ob, full);
                        println!("{}", ob);
                    }
-                   },
+               },
                _ => ()
             }
             Either::B(futures::future::result(Ok(())))
