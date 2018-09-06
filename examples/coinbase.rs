@@ -12,7 +12,7 @@ use coinbase_pro_rs::{Public, ASync, MAIN_URL, WSError};
 use coinbase_pro_rs::structs::public::*;
 use orderbook_rs::{OrderBook, BookRecord};
 use std::sync::Mutex;
-use std::sync::RwLock;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
 use coinbase_pro_rs::structs::reqs::OrderSide;
@@ -64,7 +64,7 @@ fn process_full(ob: &mut OrderBook, full: Full) {
 }
 
 fn main() {
-    let sequence = Arc::new(RwLock::new(0 as usize));
+    let sequence = Arc::new(AtomicUsize::new(0));
 
     let client: Public<ASync> = Public::new(MAIN_URL);
     let ob = Arc::new(Mutex::new(OrderBook::new()));
@@ -76,9 +76,9 @@ fn main() {
             match msg {
                Message::Full(full) => {
                    let new_sequence = get_seq(&full).to_owned();
-                   let old_sequence = sequence.read().unwrap();
+                   let old_sequence = sequence.load(Ordering::SeqCst);
                    println!("msg: seq: {}    old: {}", new_sequence, old_sequence);
-                   if new_sequence > 1 + *old_sequence {
+                   if new_sequence > 1 + old_sequence {
                        let ob2 = ob.clone();
                        let sequence2 = sequence.clone();
                        return Either::A(reload(&client)
@@ -93,20 +93,15 @@ fn main() {
                                let mut ob = ob2.lock().unwrap();
                                ob.init(bids, asks);
                                {
-                                   *sequence2.write().unwrap() = book.sequence;
+                                   sequence2.store(book.sequence, Ordering::SeqCst);
                                }
                                Ok(())
                            }))
-                   } else if new_sequence <= *old_sequence {
+                   } else if new_sequence <= old_sequence {
                        ;
                    } else {
-                       println!("debug1");
-                       {
-                           *sequence.write().unwrap() = new_sequence;
-                       }
-                       println!("debug2");
+                       sequence.fetch_add(1, Ordering::SeqCst);
                        let mut ob = ob.lock().unwrap();
-                       println!("debug3");
                        process_full(&mut ob, full);
                        println!("{}", ob);
                    }
