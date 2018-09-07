@@ -1,3 +1,11 @@
+//! # orderbook-rs
+//!
+//! I did this orderbook in addition to <https://github.com/inv2004/coinbase-pro-rs>
+//!
+//! For performance I put it in flat array, that is why its uses memory actively.
+//! For current coinbase BTC-USD pair it takes 188.1 Mb or RAM.
+//!
+
 extern crate uuid;
 #[macro_use] extern crate approx;
 
@@ -5,6 +13,8 @@ use std::collections::VecDeque;
 use std::fmt;
 use std::ops::RangeInclusive;
 pub use uuid::Uuid;
+
+const MAX_SIZE: usize = 20000 * 100;
 
 #[derive(Debug)]
 pub enum Side {
@@ -28,7 +38,7 @@ pub struct OrderBook {
 impl OrderBook {
     pub fn new() -> Self {
         Self {
-            book: vec![VecDeque::new(); 20000 * 100],
+            book: vec![VecDeque::new(); MAX_SIZE],
             bid: std::usize::MIN,
             ask: std::usize::MAX,
         }
