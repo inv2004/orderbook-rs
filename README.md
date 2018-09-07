@@ -16,6 +16,7 @@ OB: 0,0,0,0,0,0,0,0.001,0,0,0,0,0,0,0,0,0,0,0,5.5,26.047638720000013 | 6494.98  
 ```
 
 ## Examples
-Coinbase orderbook with reload if sequence is missed:
-<https://github.com/inv2004/orderbook-rs/blob/master/examples/coinbase.rs>
+- Coinbase orderbook with reload if sequence is missed:
+
+  <https://github.com/inv2004/orderbook-rs/blob/master/examples/coinbase.rs>
 
