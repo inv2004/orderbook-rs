@@ -133,7 +133,7 @@ fn main() {
                     println!("{}", ob);
                 }
             }
-            _ => (),
+            _ => ()
         }
         Either::B(futures::future::result(Ok(())))
     });
