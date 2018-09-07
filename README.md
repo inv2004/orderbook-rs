@@ -2,7 +2,7 @@
 
 I did this orderbook in addition to <https://github.com/inv2004/coinbase-pro-rs>
 
-For performance I put it in flat array, that is why its uses memory actively.
+For performance I put it in flat array, that is why it uses memory actively.
 For current coinbase BTC-USD pair it takes 188.1 Mb or RAM.
 
 It has hardcoded limit for 20000(max price) * 100(cents) = 2*10^6 values it can store.
