@@ -44,16 +44,16 @@ fn convert_record(rec: &BookRecordL3) -> BookRecord {
     }
 }
 
-fn get_seq(full: &Full) -> &usize {
+fn get_seq(full: &Full) -> Option<&usize> {
     match full {
-        Full::Open(Open { sequence, .. }) => sequence,
-        Full::Done(Done::Limit { sequence, .. }) => sequence,
-        Full::Done(Done::Market { sequence, .. }) => sequence,
-        Full::Match(Match { sequence, .. }) => sequence,
-        Full::Change(Change { sequence, .. }) => sequence,
-        Full::Received(Received::Limit { sequence, .. }) => sequence,
-        Full::Received(Received::Market { sequence, .. }) => sequence,
-        _ => unimplemented!(),
+        Full::Received(Received::Limit { sequence, .. }) => Some(sequence),
+        Full::Received(Received::Market { sequence, .. }) => Some(sequence),
+        Full::Open(Open { sequence, .. }) => Some(sequence),
+        Full::Done(Done::Limit { sequence, .. }) => Some(sequence),
+        Full::Done(Done::Market { sequence, .. }) => Some(sequence),
+        Full::Match(Match { sequence, .. }) => Some(sequence),
+        Full::Change(Change { sequence, .. }) => Some(sequence),
+        _ => None,
     }
 }
 
@@ -110,7 +110,7 @@ fn main() {
         .for_each(move |msg| {
         match msg {
             Message::Full(full) => {
-                let new_sequence = get_seq(&full).to_owned();
+                let new_sequence = get_seq(&full).unwrap().to_owned();
                 let old_sequence = sequence.load(Ordering::SeqCst);
                 if new_sequence > 1 + old_sequence {
                     let ob2 = ob.clone();
