@@ -21,6 +21,28 @@ impl OrderBook {
         }
     }
 
+    pub fn bid(&self) -> f64 {
+        self.bid as f64 / 100.0
+    }
+
+    pub fn ask(&self) -> f64 {
+        self.ask as f64 / 100.0
+    }
+
+    fn side(&self, range: RangeInclusive<usize>) -> Vec<f64> {
+        self.book[range].iter()
+            .map(|x| x.iter().map(|x| x.0).sum())
+            .collect::<Vec<_>>()
+    }
+
+    pub fn bids(&self, sz: usize) -> Vec<f64> {
+        self.side((self.bid-sz)..=self.bid)
+    }
+
+    pub fn asks(&self, sz: usize) -> Vec<f64> {
+        self.side(self.ask..=self.bid+sz)
+    }
+
     pub fn reload(&mut self, bids: Vec<BookRecord>, asks: Vec<BookRecord>) -> Option<()> {
         bids.into_iter()
             .try_for_each(|rec| self.open(Side::Buy, rec))?;
@@ -52,7 +74,13 @@ impl OrderBook {
 
     pub fn _match(&mut self, price: f64, size: f64, id: Uuid) -> Option<()> {
         let p_idx = self.get_idx(price)?;
-        assert_eq!(id, self.book[p_idx][0].1);
+
+        if self.book[p_idx].is_empty() {
+            return None;
+        }
+        if id != self.book[p_idx][0].1 {
+            return None;
+        }
         let mut sz = self.book[p_idx][0].0;
         sz -= size;
         if relative_eq!(sz, 0.0) {
