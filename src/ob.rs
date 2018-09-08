@@ -40,7 +40,7 @@ impl OrderBook {
     }
 
     pub fn asks(&self, sz: usize) -> Vec<f64> {
-        self.side(self.ask..=self.bid+sz)
+        self.side(self.ask..=self.ask+sz)
     }
 
     pub fn reload(&mut self, bids: Vec<BookRecord>, asks: Vec<BookRecord>) -> Option<()> {
