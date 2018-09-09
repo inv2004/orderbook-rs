@@ -6,6 +6,7 @@ use std::fmt;
 use std::ops::RangeInclusive;
 use super::{Side, BookRecord};
 
+/// main OrderBook structure
 pub struct OrderBook {
     pub book: Vec<VecDeque<(f64, Uuid)>>,
     bid: usize,
@@ -13,6 +14,7 @@ pub struct OrderBook {
 }
 
 impl OrderBook {
+    /// creates new orderbook
     pub fn new() -> Self {
         Self {
             book: vec![VecDeque::new(); super::MAX_SIZE],
@@ -21,10 +23,12 @@ impl OrderBook {
         }
     }
 
+    /// get current bid
     pub fn bid(&self) -> f64 {
         self.bid as f64 / 100.0
     }
 
+    /// get current ask
     pub fn ask(&self) -> f64 {
         self.ask as f64 / 100.0
     }
@@ -35,15 +39,20 @@ impl OrderBook {
             .collect::<Vec<_>>()
     }
 
+    /// get size of top sz bids (includes empty)
     pub fn bids(&self, sz: usize) -> Vec<f64> {
         self.side((self.bid-sz)..=self.bid)
     }
 
+    /// get size of low sz bids (includes empty)
     pub fn asks(&self, sz: usize) -> Vec<f64> {
         self.side(self.ask..=self.ask+sz)
     }
 
+    /// reload OrderBook from full bids and asks L3
     pub fn reload(&mut self, bids: Vec<BookRecord>, asks: Vec<BookRecord>) -> Option<()> {
+        self.book.iter_mut().map(|x| *x = VecDeque::new()).count();
+
         bids.into_iter()
             .try_for_each(|rec| self.open(Side::Buy, rec))?;
         asks.into_iter()
@@ -60,9 +69,9 @@ impl OrderBook {
         }
     }
 
+    /// open order
     pub fn open(&mut self, side: Side, rec: BookRecord) -> Option<()> {
         let p_idx = self.get_idx(rec.price)?;
-        //        println!("{} {:?} {:?}", p_idx, side, rec);
         match side {
             Side::Buy if p_idx > self.bid => self.bid = p_idx,
             Side::Sell if p_idx < self.ask => self.ask = p_idx,
@@ -72,6 +81,7 @@ impl OrderBook {
         Some(())
     }
 
+    /// match order
     pub fn _match(&mut self, price: f64, size: f64, id: Uuid) -> Option<()> {
         let p_idx = self.get_idx(price)?;
 
@@ -90,6 +100,7 @@ impl OrderBook {
         Some(())
     }
 
+    /// done order
     pub fn done(&mut self, price: f64, id: Uuid) -> Option<()> {
         let p_idx = self.get_idx(price)?;
         self.book[p_idx].retain(|&(_, it_id)| it_id != id);
@@ -97,6 +108,7 @@ impl OrderBook {
         Some(())
     }
 
+    /// change order
     pub fn change(&mut self, price: f64, new_size: f64, id: Uuid) -> Option<()> {
         let p_idx = self.get_idx(price)?;
         if new_size == 0.0 {

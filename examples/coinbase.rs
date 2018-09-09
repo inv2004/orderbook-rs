@@ -1,6 +1,6 @@
 extern crate coinbase_pro_rs;
 extern crate futures;
-extern crate orderbook_rs;
+extern crate orderbook;
 extern crate tokio;
 extern crate tokio_tungstenite;
 #[macro_use]
@@ -12,14 +12,14 @@ use coinbase_pro_rs::{ASync, Public, MAIN_URL};
 use coinbase_pro_rs::{WSFeed, WS_URL};
 use futures::future::Either;
 use futures::{Future, Stream};
-use orderbook_rs::{BookRecord, OrderBook};
+use orderbook::{BookRecord, OrderBook};
 use std::sync::{
     atomic::{AtomicUsize, Ordering},
     Arc, Mutex,
 };
 
 use coinbase_pro_rs::structs::reqs::OrderSide;
-use orderbook_rs::Side;
+use orderbook::Side;
 
 #[derive(Debug, Fail)]
 enum Error {
