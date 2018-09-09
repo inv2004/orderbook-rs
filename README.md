@@ -1,3 +1,7 @@
+[![Build Status](https://travis-ci.org/inv2004/orderbook-rs.svg?branch=master)](https://travis-ci.org/inv2004/coinbase-pro-rs)
+[![Crates.io](https://img.shields.io/crates/v/orderbook-rs.svg)](https://crates.io/crates/coinbase-pro-rs)
+[![Docs.rs](https://docs.rs/orderbook-rs/badge.svg)](https://docs.rs/coinbase-pro-rs)
+
 # orderbook-rs
 
 I did this orderbook in addition to <https://github.com/inv2004/coinbase-pro-rs>
@@ -11,7 +15,7 @@ but, I suppose, this return can be ignored in most cases.
 
 It implements Display with the following output:
 ```
-OB: volume of bids in 1-cent step | bid-price    ask-price | valume of asks in 1-cent step
+OB: sized of top 20 bids in 1-cent step | bid-price    ask-price | sizes of low 20 asks in 1-cent step
 OB: 0,0,0,0,0,0,0,0.001,0,0,0,0,0,0,0,0,0,0,0,5.5,26.047638720000013 | 6494.98   6494.99 | 5.006541749999999,10.0838,0,0,0,0,0,0,0.00130864,0.0052,0,0,0,0,0,0,0,0,0,0,0
 ```
 
