@@ -1,6 +1,6 @@
-[![Build Status](https://travis-ci.org/inv2004/orderbook-rs.svg?branch=master)](https://travis-ci.org/inv2004/coinbase-pro-rs)
-[![Crates.io](https://img.shields.io/crates/v/orderbook-rs.svg)](https://crates.io/crates/coinbase-pro-rs)
-[![Docs.rs](https://docs.rs/orderbook-rs/badge.svg)](https://docs.rs/coinbase-pro-rs)
+[![Build Status](https://travis-ci.org/inv2004/orderbook-rs.svg?branch=master)](https://travis-ci.org/inv2004/orderbook-rs)
+[![Crates.io](https://img.shields.io/crates/v/orderbook-rs.svg)](https://crates.io/crates/orderbook-rs)
+[![Docs.rs](https://docs.rs/orderbook-rs/badge.svg)](https://docs.rs/orderbook-rs)
 
 # orderbook-rs
 
