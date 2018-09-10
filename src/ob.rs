@@ -41,12 +41,12 @@ impl OrderBook {
 
     /// get size of top sz bids (includes empty)
     pub fn bids(&self, sz: usize) -> Vec<f64> {
-        self.side((self.bid-sz)..=self.bid)
+        self.side((self.bid-sz+1)..=self.bid)
     }
 
     /// get size of low sz bids (includes empty)
     pub fn asks(&self, sz: usize) -> Vec<f64> {
-        self.side(self.ask..=self.ask+sz)
+        self.side(self.ask..=self.ask+sz-1)
     }
 
     /// reload OrderBook from full bids and asks L3
@@ -138,27 +138,14 @@ impl OrderBook {
     }
 }
 
-impl OrderBook {
-    fn fmt_side(&self, range: RangeInclusive<usize>) -> String {
-        self.book[range]
-            .into_iter()
-            .map(|orders| {
-                let size = orders.iter().map(|x| x.0).sum::<f64>();
-                let _count = orders.len();
-                size.to_string()
-            }).collect::<Vec<_>>()
-            .join(",")
-    }
-}
-
 impl fmt::Display for OrderBook {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         if self.bid == std::usize::MIN || self.ask == std::usize::MAX {
             return write!(f, "OB: empty");
         }
         let size = 20;
-        let bids = self.fmt_side((self.bid - size)..=self.bid);
-        let asks = self.fmt_side(self.ask..=self.ask + size);
+        let bids = self.bids(size).into_iter().map(|x| x.to_string()).collect::<Vec<_>>().join(",");
+        let asks = self.asks(size).into_iter().map(|x| x.to_string()).collect::<Vec<_>>().join(",");
         let bid = self.bid as f64 / 100.0;
         let ask = self.ask as f64 / 100.0;
         write!(f, "OB: {} | {:.2}   {:.2} | {}", bids, bid, ask, asks)
