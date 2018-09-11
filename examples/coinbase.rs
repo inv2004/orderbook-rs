@@ -119,7 +119,7 @@ fn main() {
                         let bids = book.bids.iter().map(convert_record).collect::<Vec<_>>();
                         let asks = book.asks.iter().map(convert_record).collect::<Vec<_>>();
                         let mut ob = ob2.lock().unwrap();
-                        ob.reload(bids, asks);
+                        ob.reload(bids, asks).unwrap_or_default();
                         sequence2.store(book.sequence, Ordering::SeqCst);
                         println!("{}", ob);
                         Ok(())

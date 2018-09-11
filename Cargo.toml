@@ -12,10 +12,10 @@ keywords = [ "exchange", "coinbase", "bitcoin" ]
 [dependencies]
 uuid = { version = "0.6.5", features = ["v4"] }
 approx = "0.3.0"
+failure = "0.1.2"
 
 [dev-dependencies]
 coinbase-pro-rs = "0.2.2"
 futures = "0.1.23"
 tokio = "0.1.8"
 tokio-tungstenite = "0.6.0"
-failure = "0.1.2"

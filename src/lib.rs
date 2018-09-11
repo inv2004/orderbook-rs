@@ -12,6 +12,19 @@
 
 extern crate uuid;
 #[macro_use] extern crate approx;
+#[macro_use] extern crate failure;
+
+type Result<T> = std::result::Result<T, Error>;
+
+#[derive(Debug, Fail)]
+pub enum Error {
+    #[fail(display = "range")]
+    Range,
+    #[fail(display = "bid_less_ask")]
+    BidLessAsk,
+    #[fail(display = "match_uuid")]
+    MatchUuid
+}
 
 pub(crate) const MAX_SIZE: usize = 20000 * 100;
 

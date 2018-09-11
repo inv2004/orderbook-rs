@@ -1,10 +1,12 @@
+
 use super::uuid::Uuid;
 
 use std;
 use std::collections::VecDeque;
 use std::fmt;
 use std::ops::RangeInclusive;
-use super::{Side, BookRecord};
+use super::{Side, BookRecord, Error, Result};
+
 
 /// main OrderBook structure
 pub struct OrderBook {
@@ -50,27 +52,27 @@ impl OrderBook {
     }
 
     /// reload OrderBook from full bids and asks L3
-    pub fn reload(&mut self, bids: Vec<BookRecord>, asks: Vec<BookRecord>) -> Option<()> {
+    pub fn reload(&mut self, bids: Vec<BookRecord>, asks: Vec<BookRecord>) -> Result<()> {
         self.book.iter_mut().map(|x| *x = VecDeque::new()).count();
 
         bids.into_iter()
             .try_for_each(|rec| self.open(Side::Buy, rec))?;
         asks.into_iter()
             .try_for_each(|rec| self.open(Side::Sell, rec))?;
-        Some(())
+        Ok(())
     }
 
-    fn get_idx(&self, price: f64) -> Option<usize> {
+    fn get_idx(&self, price: f64) -> Result<usize> {
         let p_idx = (price * 100.0) as usize;
         if p_idx >= self.book.len() {
-            None
+            Err(Error::Range)
         } else {
-            Some(p_idx)
+            Ok(p_idx)
         }
     }
 
     /// open order
-    pub fn open(&mut self, side: Side, rec: BookRecord) -> Option<()> {
+    pub fn open(&mut self, side: Side, rec: BookRecord) -> Result<()> {
         let p_idx = self.get_idx(rec.price)?;
         match side {
             Side::Buy if p_idx > self.bid => self.bid = p_idx,
@@ -79,18 +81,15 @@ impl OrderBook {
         }
         assert!(self.bid < self.ask);
         self.book[p_idx].push_back((rec.size, rec.id));
-        Some(())
+        Ok(())
     }
 
     /// match order
-    pub fn _match(&mut self, price: f64, size: f64, id: Uuid) -> Option<()> {
+    pub fn _match(&mut self, price: f64, size: f64, id: Uuid) -> Result<()> {
         let p_idx = self.get_idx(price)?;
 
-        if self.book[p_idx].is_empty() {
-            return None;
-        }
-        if id != self.book[p_idx][0].1 {
-            return None;
+        if self.book[p_idx].is_empty() || id != self.book[p_idx][0].1 {
+            return Err(Error::MatchUuid);
         }
         let mut sz = self.book[p_idx][0].0;
         sz -= size;
@@ -98,22 +97,22 @@ impl OrderBook {
             self.book[p_idx].pop_front();
             self.check_ask_bid(p_idx);
         }
-        Some(())
+        Ok(())
     }
 
     /// done order
-    pub fn done(&mut self, price: f64, id: Uuid) -> Option<()> {
+    pub fn done(&mut self, price: f64, id: Uuid) -> Result<()> {
         let p_idx = self.get_idx(price)?;
         self.book[p_idx].retain(|&(_, it_id)| it_id != id);
         self.check_ask_bid(p_idx);
-        Some(())
+        Ok(())
     }
 
     /// change order
-    pub fn change(&mut self, price: f64, new_size: f64, id: Uuid) -> Option<()> {
+    pub fn change(&mut self, price: f64, new_size: f64, id: Uuid) -> Result<()> {
         let p_idx = self.get_idx(price)?;
         if new_size == 0.0 {
-            self.done(price, id);
+            self.done(price, id).unwrap_or_default();
         } else {
             self.book[p_idx].iter_mut().for_each(|(it_size, it_id)| {
                 if *it_id == id {
@@ -121,7 +120,7 @@ impl OrderBook {
                 }
             })
         }
-        Some(())
+        Ok(())
     }
 
     fn check_ask_bid(&mut self, p_idx: usize) {
@@ -185,7 +184,7 @@ mod tests {
                     id: Uuid::new_v4(),
                 },
             ],
-        );
+        ).unwrap_or_default();
 
         ob.open(
             Side::Buy,
@@ -194,7 +193,7 @@ mod tests {
                 size: 0.2,
                 id: Uuid::new_v4(),
             },
-        );
+        ).unwrap_or_default();
 
         let str = format!("{}", ob);
         assert_eq!(str, "OB: 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.5,0,0,0,0.5 | 3995.00   4005.00 | 0.4,0,0.2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
@@ -230,7 +229,7 @@ mod tests {
                     id: Uuid::new_v4(),
                 },
             ],
-        );
+        ).unwrap_or_default();
 
         ob.open(
             Side::Buy,
@@ -239,8 +238,8 @@ mod tests {
                 size: 0.2,
                 id: Uuid::new_v4(),
             },
-        );
-        ob._match(3995.0, 0.5, id2);
+        ).unwrap_or_default();
+        ob._match(3995.0, 0.5, id2).unwrap_or_default();
 
         let str = format!("{}", ob);
         assert_eq!(str, "OB: 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.5 | 3994.96   4005.00 | 0.4,0,0.2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
@@ -276,9 +275,9 @@ mod tests {
                     id: Uuid::new_v4(),
                 },
             ],
-        );
+        ).unwrap_or_default();
 
-        ob.done(3994.96, id1);
+        ob.done(3994.96, id1).unwrap_or_default();
 
         let str = format!("{}", ob);
         assert_eq!(str, "OB: 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.5 | 3995.00   4005.00 | 0.4,0,0.2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
