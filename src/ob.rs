@@ -77,7 +77,7 @@ impl OrderBook {
             Side::Sell if p_idx < self.ask => self.ask = p_idx,
             _ => (),
         }
-        assert(self.bid < self.ask);
+        assert!(self.bid < self.ask);
         self.book[p_idx].push_back((rec.size, rec.id));
         Some(())
     }
