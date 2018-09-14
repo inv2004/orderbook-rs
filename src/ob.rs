@@ -53,6 +53,8 @@ impl OrderBook {
 
     /// reload OrderBook from full bids and asks L3
     pub fn reload(&mut self, bids: Vec<BookRecord>, asks: Vec<BookRecord>) -> Result<()> {
+        self.bid = std::usize::MIN;
+        self.ask = std::usize::MAX;
         self.book.iter_mut().map(|x| *x = VecDeque::new()).count();
 
         bids.into_iter()

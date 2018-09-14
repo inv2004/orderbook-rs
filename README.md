@@ -6,6 +6,8 @@
 
 I did this orderbook in addition to <https://github.com/inv2004/coinbase-pro-rs>
 
+*Its primitive orderbook with hardcoded minimal step to 1 cent.*
+
 For performance I put it in flat array, that is why it uses memory actively.
 For current coinbase BTC-USD pair it takes 188.1 Mb or RAM.
 
