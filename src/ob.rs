@@ -102,6 +102,19 @@ impl OrderBook {
         Ok(())
     }
 
+    pub fn test_match(&mut self, price: f64) -> Result<bool> {
+        let p_idx = self.get_idx(price)?;
+        if self.book[p_idx].is_empty() {
+            return Err(Error::MatchUuid);
+        }
+        if Uuid::nil() != self.book[p_idx][0].1 {
+            return Ok(false);
+        }
+        self.book[p_idx].pop_front();
+        self.check_ask_bid(p_idx);
+        Ok(true)
+    }
+
     /// done order
     pub fn done(&mut self, price: f64, id: Uuid) -> Result<()> {
         let p_idx = self.get_idx(price)?;
