@@ -13,6 +13,7 @@ pub struct OrderBook {
     pub book: Vec<VecDeque<(f64, Uuid)>>,
     bid: usize,
     ask: usize,
+    _match: usize
 }
 
 impl OrderBook {
@@ -22,6 +23,7 @@ impl OrderBook {
             book: vec![VecDeque::new(); super::MAX_SIZE],
             bid: std::usize::MIN,
             ask: std::usize::MAX,
+            _match: 0
         }
     }
 
@@ -33,6 +35,10 @@ impl OrderBook {
     /// get current ask
     pub fn ask(&self) -> f64 {
         self.ask as f64 / 100.0
+    }
+
+    pub fn __match(&self) -> f64 {
+        self._match as f64 / 100.0
     }
 
     fn side(&self, range: RangeInclusive<usize>) -> Vec<f64> {
@@ -98,6 +104,7 @@ impl OrderBook {
         if relative_eq!(sz, 0.0) {
             self.book[p_idx].pop_front();
             self.check_ask_bid(p_idx);
+            self._match = p_idx;
         }
         Ok(())
     }
