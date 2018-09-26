@@ -28,18 +28,31 @@ impl OrderBook {
     }
 
     /// get current bid
-    pub fn bid(&self) -> f64 {
-        self.bid as f64 / 100.0
+    pub fn bid(&self) -> Option<f64> {
+        if self.bid == std::usize::MIN {
+            None
+        } else {
+            Some(self.bid as f64 / 100.0)
+        }
     }
 
     /// get current ask
-    pub fn ask(&self) -> f64 {
-        self.ask as f64 / 100.0
+    pub fn ask(&self) -> Option<f64> {
+        if self.bid == std::usize::MAX {
+            None
+        } else {
+            Some(self.ask as f64 / 100.0)
+        }
     }
 
-    pub fn __match(&self) -> f64 {
-        self._match as f64 / 100.0
+    pub fn __match(&self) -> Option<f64> {
+        if self._match == 0 {
+            None
+        } else {
+            Some(self._match as f64 / 100.0)
+        }
     }
+
 
     fn side(&self, range: RangeInclusive<usize>) -> Vec<f64> {
         self.book[range].iter()
