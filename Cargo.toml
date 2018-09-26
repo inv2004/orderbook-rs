@@ -1,6 +1,6 @@
 [package]
 name = "orderbook"
-version = "0.1.3"
+version = "0.1.4"
 authors = ["ae <inv2004@gmail.com>"]
 repository = "https://github.com/inv2004/orderbook-rs"
 description = "Orderbook for Rust"
@@ -10,12 +10,12 @@ categories = [ "data-structures" ]
 keywords = [ "exchange", "coinbase", "bitcoin" ]
 
 [dependencies]
-uuid = { version = "0.6.5", features = ["v4"] }
+uuid = { version = "0.7.1", features = ["v4"] }
 approx = "0.3.0"
 failure = "0.1.2"
 
 [dev-dependencies]
-coinbase-pro-rs = "0.2.2"
+coinbase-pro-rs = "0.2.5"
 futures = "0.1.23"
 tokio = "0.1.8"
 tokio-tungstenite = "0.6.0"
