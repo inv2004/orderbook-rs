@@ -38,7 +38,7 @@ impl OrderBook {
 
     /// get current ask
     pub fn ask(&self) -> Option<f64> {
-        if self.bid == std::usize::MAX {
+        if self.ask == std::usize::MAX {
             None
         } else {
             Some(self.ask as f64 / 100.0)
