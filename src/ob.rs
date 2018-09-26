@@ -45,6 +45,7 @@ impl OrderBook {
         }
     }
 
+    /// get last match
     pub fn __match(&self) -> Option<f64> {
         if self._match == 0 {
             None
@@ -127,12 +128,13 @@ impl OrderBook {
         if self.book[p_idx].is_empty() {
             return Err(Error::MatchUuid);
         }
-        if Uuid::nil() != self.book[p_idx][0].1 {
-            return Ok(false);
+        if (self.bid == p_idx || self.ask == p_idx) && Uuid::nil() == self.book[p_idx][0].1 {
+            self.book[p_idx].pop_front();
+            self.check_ask_bid(p_idx);
+            Ok(true)
+        } else {
+            Ok(false)
         }
-        self.book[p_idx].pop_front();
-        self.check_ask_bid(p_idx);
-        Ok(true)
     }
 
     /// done order
