@@ -13,6 +13,7 @@ pub struct OrderBook {
     pub book: Vec<VecDeque<(f64, Uuid)>>,
     bid: usize,
     ask: usize,
+    _match: usize
 }
 
 impl OrderBook {
@@ -22,18 +23,36 @@ impl OrderBook {
             book: vec![VecDeque::new(); super::MAX_SIZE],
             bid: std::usize::MIN,
             ask: std::usize::MAX,
+            _match: 0
         }
     }
 
     /// get current bid
-    pub fn bid(&self) -> f64 {
-        self.bid as f64 / 100.0
+    pub fn bid(&self) -> Option<f64> {
+        if self.bid == std::usize::MIN {
+            None
+        } else {
+            Some(self.bid as f64 / 100.0)
+        }
     }
 
     /// get current ask
-    pub fn ask(&self) -> f64 {
-        self.ask as f64 / 100.0
+    pub fn ask(&self) -> Option<f64> {
+        if self.bid == std::usize::MAX {
+            None
+        } else {
+            Some(self.ask as f64 / 100.0)
+        }
     }
+
+    pub fn __match(&self) -> Option<f64> {
+        if self._match == 0 {
+            None
+        } else {
+            Some(self._match as f64 / 100.0)
+        }
+    }
+
 
     fn side(&self, range: RangeInclusive<usize>) -> Vec<f64> {
         self.book[range].iter()
@@ -53,6 +72,8 @@ impl OrderBook {
 
     /// reload OrderBook from full bids and asks L3
     pub fn reload(&mut self, bids: Vec<BookRecord>, asks: Vec<BookRecord>) -> Result<()> {
+        self.bid = std::usize::MIN;
+        self.ask = std::usize::MAX;
         self.book.iter_mut().map(|x| *x = VecDeque::new()).count();
 
         bids.into_iter()
@@ -96,8 +117,22 @@ impl OrderBook {
         if relative_eq!(sz, 0.0) {
             self.book[p_idx].pop_front();
             self.check_ask_bid(p_idx);
+            self._match = p_idx;
         }
         Ok(())
+    }
+
+    pub fn test_match(&mut self, price: f64) -> Result<bool> {
+        let p_idx = self.get_idx(price)?;
+        if self.book[p_idx].is_empty() {
+            return Err(Error::MatchUuid);
+        }
+        if Uuid::nil() != self.book[p_idx][0].1 {
+            return Ok(false);
+        }
+        self.book[p_idx].pop_front();
+        self.check_ask_bid(p_idx);
+        Ok(true)
     }
 
     /// done order
