@@ -23,7 +23,9 @@ pub enum Error {
     #[fail(display = "bid_less_ask")]
     BidLessAsk,
     #[fail(display = "match_uuid")]
-    MatchUuid
+    MatchUuid,
+    #[fail(display = "test price is not bid or ask")]
+    TestFail
 }
 
 pub(crate) const MAX_SIZE: usize = 20000 * 100;

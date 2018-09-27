@@ -123,20 +123,6 @@ impl OrderBook {
         Ok(())
     }
 
-    pub fn test_match(&mut self, price: f64) -> Result<bool> {
-        let p_idx = self.get_idx(price)?;
-        if self.book[p_idx].is_empty() {
-            return Err(Error::MatchUuid);
-        }
-        if (self.bid == p_idx || self.ask == p_idx) && Uuid::nil() == self.book[p_idx][0].1 {
-            self.book[p_idx].pop_front();
-            self.check_ask_bid(p_idx);
-            Ok(true)
-        } else {
-            Ok(false)
-        }
-    }
-
     /// done order
     pub fn done(&mut self, price: f64, id: Uuid) -> Result<()> {
         let p_idx = self.get_idx(price)?;
@@ -173,6 +159,26 @@ impl OrderBook {
             }
         }
     }
+
+    /// open test order
+    pub fn open_test(&mut self, side: Side, price: f64) -> Result<()> {
+        Self::open(self, side, BookRecord{price, size:0.001, id: Uuid::nil()})
+    }
+
+    /// test is test order works
+    pub fn test_order(&mut self, side: Side, price: f64) -> Result<()> {
+        let bid_or_ask = match side {
+            Side::Buy => self.bid,
+            Side::Sell => self.ask
+        };
+        let p_idx = self.get_idx(price)?;
+        if p_idx == bid_or_ask {
+            Self::_match(self, price, 0.001, Uuid::nil())
+        } else {
+            Err(Error::TestFail)
+        }
+    }
+
 }
 
 impl fmt::Display for OrderBook {
