@@ -118,8 +118,8 @@ impl OrderBook {
         if relative_eq!(sz, 0.0) {
             self.book[p_idx].pop_front();
             self.check_ask_bid(p_idx);
-            self._match = p_idx;
         }
+        self._match = p_idx;
         Ok(())
     }
 
