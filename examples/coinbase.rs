@@ -89,7 +89,7 @@ fn process_full(ob: &mut OrderBook, full: Full) {
         }) => ob._match(price, size, id).unwrap_or(()),
         Full::Change(Change {
             new_size: size,
-            price,
+            price: Some(price),
             order_id: id,
             ..
         }) => ob.change(price, size, id).unwrap_or(()),
