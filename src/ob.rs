@@ -101,7 +101,7 @@ impl OrderBook {
             Side::Sell if p_idx < self.ask => self.ask = p_idx,
             _ => (),
         }
-        assert!(self.bid < self.ask);
+        assert!(self.bid < self.ask, "bit >= ask on {}", rec.id);
         self.book[p_idx].push_back((rec.size, rec.id));
         Ok(())
     }
@@ -148,9 +148,11 @@ impl OrderBook {
 
     fn check_ask_bid(&mut self, p_idx: usize) {
         if p_idx == self.bid {
+            println!("DEBUG101");
             while self.book[self.bid].len() == 0 {
                 self.bid -= 1;
             }
+            println!("DEBUG102");
         }
 
         if p_idx == self.ask {
