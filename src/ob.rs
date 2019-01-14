@@ -148,11 +148,9 @@ impl OrderBook {
 
     fn check_ask_bid(&mut self, p_idx: usize) {
         if p_idx == self.bid {
-            println!("DEBUG101");
             while self.book[self.bid].len() == 0 {
                 self.bid -= 1;
             }
-            println!("DEBUG102");
         }
 
         if p_idx == self.ask {
