@@ -11,7 +11,6 @@
 //!
 
 extern crate uuid;
-#[macro_use] extern crate approx;
 #[macro_use] extern crate failure;
 
 type Result<T> = std::result::Result<T, Error>;

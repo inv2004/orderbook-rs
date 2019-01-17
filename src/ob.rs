@@ -85,7 +85,7 @@ impl OrderBook {
     }
 
     fn get_idx(&self, price: f64) -> Result<usize> {
-        let p_idx = (price * 100.0) as usize;
+        let p_idx = (price * 100.0).round() as usize;
         if p_idx >= self.book.len() {
             Err(Error::Range)
         } else {
@@ -106,6 +106,28 @@ impl OrderBook {
         Ok(())
     }
 
+    pub fn open_debug(&mut self, side: Side, rec: BookRecord, d: bool) -> Result<()> {
+        if d {
+            println!("DEBUG20: {}", rec.price);
+            println!("DEBUG21: {} {}", self.bid, self.ask);
+        }
+        let p_idx = self.get_idx(rec.price)?;
+        if d {
+            println!("DEBUG215: {}", p_idx);
+        }
+        match side {
+            Side::Buy if p_idx > self.bid => self.bid = p_idx,
+            Side::Sell if p_idx < self.ask => self.ask = p_idx,
+            _ => (),
+        }
+        if d {
+            println!("DEBUG22: {} {}", self.bid, self.ask);
+        }
+        assert!(self.bid < self.ask, "bid >= ask ({} >= {}) on {}", self.bid, self.ask, rec.id);
+        self.book[p_idx].push_back((rec.size, rec.id));
+        Ok(())
+    }
+
     /// match order
     pub fn _match(&mut self, price: f64, size: f64, id: Uuid) -> Result<()> {
         let p_idx = self.get_idx(price)?;
@@ -115,7 +137,8 @@ impl OrderBook {
         }
         let mut sz = self.book[p_idx][0].0;
         sz -= size;
-        if relative_eq!(sz, 0.0) {
+        sz = (sz * 100.0).round();
+        if sz == 0.0 {
             self.book[p_idx].pop_front();
             self.check_ask_bid(p_idx);
         }
