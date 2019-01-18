@@ -106,28 +106,6 @@ impl OrderBook {
         Ok(())
     }
 
-    pub fn open_debug(&mut self, side: Side, rec: BookRecord, d: bool) -> Result<()> {
-        if d {
-            println!("DEBUG20: {}", rec.price);
-            println!("DEBUG21: {} {}", self.bid, self.ask);
-        }
-        let p_idx = self.get_idx(rec.price)?;
-        if d {
-            println!("DEBUG215: {}", p_idx);
-        }
-        match side {
-            Side::Buy if p_idx > self.bid => self.bid = p_idx,
-            Side::Sell if p_idx < self.ask => self.ask = p_idx,
-            _ => (),
-        }
-        if d {
-            println!("DEBUG22: {} {}", self.bid, self.ask);
-        }
-        assert!(self.bid < self.ask, "bid >= ask ({} >= {}) on {}", self.bid, self.ask, rec.id);
-        self.book[p_idx].push_back((rec.size, rec.id));
-        Ok(())
-    }
-
     /// match order
     pub fn _match(&mut self, price: f64, size: f64, id: Uuid) -> Result<()> {
         let p_idx = self.get_idx(price)?;
@@ -186,6 +164,11 @@ impl OrderBook {
     /// open test order
     pub fn open_test(&mut self, side: Side, price: f64) -> Result<()> {
         Self::open(self, side, BookRecord{price, size:0.001, id: Uuid::nil()})
+    }
+
+    /// done test order
+    pub fn done_test(&mut self, price: f64) -> Result<()> {
+        Self::done(self, price, Uuid::nil())
     }
 
     /// test is test order works
