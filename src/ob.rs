@@ -113,10 +113,12 @@ impl OrderBook {
         if self.book[p_idx].is_empty() || id != self.book[p_idx][0].1 {
             return Err(Error::MatchUuid);
         }
-        let mut sz = self.book[p_idx][0].0;
-        sz -= size;
-        sz = (sz * 100.0).round();
-        if sz == 0.0 {
+        let sz_round = {
+            let mut sz = &mut self.book[p_idx][0].0;
+            *sz -= size;
+            (*sz * 100.0).round()
+        };
+        if sz_round == 0.0 {
             self.book[p_idx].pop_front();
             self.check_ask_bid(p_idx);
         }
@@ -288,10 +290,14 @@ mod tests {
                 id: Uuid::new_v4(),
             },
         ).unwrap_or_default();
-        ob._match(3995.0, 0.5, id2).unwrap_or_default();
+        ob._match(3995.0, 0.3, id2).unwrap_or_default();
+        let str = format!("{}", ob);
+        assert_eq!(str, "OB: 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.5,0,0,0,0.2 | 3995.00   4005.00 | 0.4,0,0.2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
 
+        ob._match(3995.0, 0.2, id2).unwrap_or_default();
         let str = format!("{}", ob);
         assert_eq!(str, "OB: 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.5 | 3994.96   4005.00 | 0.4,0,0.2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+
     }
 
     #[test]
