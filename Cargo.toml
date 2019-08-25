@@ -14,7 +14,7 @@ uuid = { version = "0.7.1", features = ["v4"] }
 failure = "0.1.5"
 
 [dev-dependencies]
-coinbase-pro-rs = "0.2.9"
-futures = "0.1.23"
+coinbase-pro-rs = "0.4.3"
+futures = "0.1.28"
 tokio = "0.1.8"
-tokio-tungstenite = "0.6.0"
+tokio-tungstenite = "0.9.0"
