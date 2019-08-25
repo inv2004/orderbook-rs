@@ -1,6 +1,6 @@
 [package]
 name = "orderbook"
-version = "0.1.7"
+version = "0.1.8"
 authors = ["ae <inv2004@gmail.com>"]
 repository = "https://github.com/inv2004/orderbook-rs"
 description = "Orderbook for Rust"

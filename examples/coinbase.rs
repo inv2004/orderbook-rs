@@ -125,7 +125,7 @@ fn main() {
                         Ok(())
                     }));
                 } else if new_sequence <= old_sequence {
-                    ;
+                    ()
                 } else {
                     sequence.fetch_add(1, Ordering::SeqCst);
                     let mut ob = ob.lock().unwrap();
