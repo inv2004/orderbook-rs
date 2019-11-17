@@ -49,7 +49,7 @@ fn get_seq(full: &Full) -> Option<&usize> {
         Full::Received(Received::Limit { sequence, .. }) => Some(sequence),
         Full::Received(Received::Market { sequence, .. }) => Some(sequence),
         Full::Open(Open { sequence, .. }) => Some(sequence),
-        Full::Done(Done::Limit { sequence, .. }) => Some(sequence),
+        Full::Done(Done::Limit { sequence, .. }) => sequence.as_ref(),
         Full::Done(Done::Market { sequence, .. }) => Some(sequence),
         Full::Match(Match { sequence, .. }) => Some(sequence),
         Full::Change(Change { sequence, .. }) => Some(sequence),
