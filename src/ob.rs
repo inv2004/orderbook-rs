@@ -63,7 +63,7 @@ impl OrderBook {
 
     /// get size of top sz bids (includes empty)
     pub fn bids(&self, sz: usize) -> Vec<f64> {
-        self.side((self.bid-sz+1)..=self.bid)
+        self.side((self.bid + 1 - sz)..=self.bid)
     }
 
     /// get size of low sz bids (includes empty)
