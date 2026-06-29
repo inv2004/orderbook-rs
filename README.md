@@ -9,7 +9,7 @@ I did this orderbook in addition to <https://github.com/inv2004/coinbase-pro-rs>
 *Its primitive orderbook with hardcoded minimal step to 1 cent.*
 
 For performance I put it in flat array, that is why it uses memory actively.
-For current coinbase BTC-USD pair it takes 188.1 Mb or RAM.
+For current coinbase BTC-USD pair it takes 188.1 Mb of RAM.
 
 It has hardcoded limit for 20000(max price) * 100(cents) = 2*10^6 values it can store.
 Call the OB with values which are outside these boundaries will return None,
