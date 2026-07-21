@@ -151,14 +151,20 @@ impl OrderBook {
 
     fn check_ask_bid(&mut self, p_idx: usize) {
         if p_idx == self.bid {
-            while self.book[self.bid].len() == 0 {
+            while self.bid > 0 && self.book[self.bid].len() == 0 {
                 self.bid -= 1;
+            }
+            if self.book[self.bid].len() == 0 {
+                self.bid = std::usize::MIN;
             }
         }
 
         if p_idx == self.ask {
-            while self.book[self.ask].len() == 0 {
+            while self.ask < super::MAX_SIZE - 1 && self.book[self.ask].len() == 0 {
                 self.ask += 1;
+            }
+            if self.book[self.ask].len() == 0 {
+                self.ask = std::usize::MAX;
             }
         }
     }
@@ -339,6 +345,46 @@ mod tests {
 
         let str = format!("{}", ob);
         assert_eq!(str, "OB: 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.5 | 3995.00   4005.00 | 0.4,0,0.2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0");
+    }
+
+    #[test]
+    fn test_empty_side_restores_sentinel() {
+        let mut ob = OrderBook::new();
+        let bid_id = Uuid::new_v4();
+        ob.open(
+            Side::Buy,
+            BookRecord {
+                price: 100.0,
+                size: 1.0,
+                id: bid_id,
+            },
+        ).unwrap();
+        ob.done(100.0, bid_id).unwrap();
+        assert_eq!(ob.bid(), None);
+
+        let ask_id = Uuid::new_v4();
+        ob.open(
+            Side::Sell,
+            BookRecord {
+                price: 101.0,
+                size: 1.0,
+                id: ask_id,
+            },
+        ).unwrap();
+        ob.done(101.0, ask_id).unwrap();
+        assert_eq!(ob.ask(), None);
+        let mut ob = OrderBook::new();
+        let id = Uuid::new_v4();
+        ob.open(
+            Side::Buy,
+            BookRecord {
+                price: 100.0,
+                size: 1.0,
+                id,
+            },
+        ).unwrap();
+        ob._match(100.0, 1.0, id).unwrap();
+        assert_eq!(ob.bid(), None);
     }
 
     #[test]
